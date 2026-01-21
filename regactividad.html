@@ -491,13 +491,13 @@
             loadingOverlay.classList.add('show');
 
             try {
-                // Cargar Contratistas (ajusta el nombre de la tabla y columna según tu AppSheet)
-                await loadDataFromAppSheet('CONTRATISTA', 'contratista', 'Nombre');
+                // Cargar Contratistas desde ACTIVIDADESDELCONTRATO
+                await loadDataFromAppSheet('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA');
                 
-                // Cargar Actividades (ajusta el nombre de la tabla y columna según tu AppSheet)
-                await loadDataFromAppSheet('ACTIVIDAD', 'actividadref', 'Nombre');
+                // Cargar Actividades REF desde ACTIVIDADESDELCONTRATO
+                await loadDataFromAppSheet('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF');
                 
-                // Cargar ABDCTIVIDAD_REGISTRADA (ajusta según tu AppSheet)
+                // Cargar ABDCTIVIDAD_REGISTRADA desde ACTREGISTRADA
                 await loadDataFromAppSheet('ACTREGISTRADA', 'abdctividad', 'ABDCTIVIDAD_REGISTRADA');
                 
                 showAlert('✓ Datos cargados correctamente desde AppSheet', 'success');
@@ -623,7 +623,7 @@
                 // Agregar PDF si existe
                 if (selectedPdf) {
                     const pdfBase64 = await fileToBase64(selectedPdf);
-                    formData.Rows[0].DOCUMENTO_PDF = pdfBase64;
+                    formData.Rows[0].FILE = pdfBase64;
                 }
 
                 // Enviar a AppSheet API
