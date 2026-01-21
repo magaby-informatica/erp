@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTREGISTRADA Form</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .form-content {
+            padding: 40px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        label .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .evidence-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            background: #fafafa;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #f0f0f0;
+            border-color: #667eea;
+        }
+
+        .upload-area {
+            border: 2px dashed #d0d0d0;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .number-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .number-input-wrapper input {
+            flex: 1;
+        }
+
+        .btn-counter {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .btn-counter:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-cancel:hover {
+            background: #e0e0e0;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .form-content {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ACTREGISTRADA Form</h1>
+            <p>Complete todos los campos requeridos</p>
+        </div>
+
+        <div class="form-content">
+            <form id="actregistradaForm">
+                <div class="form-group">
+                    <label>IDACTIVI<span class="required">*</span></label>
+                    <input type="text" id="idactivi" value="8" required>
+                </div>
+
+                <div class="form-group">
+                    <label>FECHA<span class="required">*</span></label>
+                    <input type="date" id="fecha" value="2026-01-21" required>
+                </div>
+
+                <div class="form-group">
+                    <label>CONTRATISTA<span class="required">*</span></label>
+                    <select id="contratista" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="contratista1">Contratista 1</option>
+                        <option value="contratista2">Contratista 2</option>
+                        <option value="contratista3">Contratista 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>ACTIVIDAD REF<span class="required">*</span></label>
+                    <select id="actividadref" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="actividad1">Actividad 1</option>
+                        <option value="actividad2">Actividad 2</option>
+                        <option value="actividad3">Actividad 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>EVIDENCIATIPO</label>
+                    <div class="evidence-tabs">
+                        <button type="button" class="tab-button active" data-type="imagen">IMAGEN</button>
+                        <button type="button" class="tab-button" data-type="documento">DOCUMENTO</button>
+                        <button type="button" class="tab-button" data-type="mari">MARI</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>ABDCTIVIDAD_REGISTRADA<span class="required">*</span></label>
+                    <select id="abdctividad" required>
+                        <option value="">Seleccione una opción</option>
+                        <option value="registrada1">Registrada 1</option>
+                        <option value="registrada2">Registrada 2</option>
+                        <option value="registrada3">Registrada 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>IMAGEN</label>
+                    <div class="upload-area" onclick="document.getElementById('imageUpload').click()">
+                        <div class="upload-icon">📷</div>
+                        <div class="upload-text">Haz clic para subir una imagen</div>
+                    </div>
+                    <input type="file" id="imageUpload" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label>DOCUMENTO PDF</label>
+                    <div class="upload-area" onclick="document.getElementById('pdfUpload').click()">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Haz clic para subir un PDF</div>
+                    </div>
+                    <input type="file" id="pdfUpload" accept=".pdf">
+                </div>
+
+                <div class="form-group">
+                    <label>MARI</label>
+                    <div class="number-input-wrapper">
+                        <button type="button" class="btn-counter" onclick="decrementMari()">−</button>
+                        <input type="number" id="mari" value="0" min="0">
+                        <button type="button" class="btn-counter" onclick="incrementMari()">+</button>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-submit">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Tabs de evidencia
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Contador MARI
+        function incrementMari() {
+            const input = document.getElementById('mari');
+            input.value = parseInt(input.value) + 1;
+        }
+
+        function decrementMari() {
+            const input = document.getElementById('mari');
+            if (parseInt(input.value) > 0) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+
+        // Manejo de archivos
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                const uploadArea = e.target.previousElementSibling;
+                uploadArea.querySelector('.upload-text').textContent = `Archivo seleccionado: ${fileName}`;
+            }
+        });
+
+        document.getElementById('pdfUpload').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                const uploadArea = e.target.previousElementSibling;
+                uploadArea.querySelector('.upload-text').textContent = `Archivo seleccionado: ${fileName}`;
+            }
+        });
+
+        // Manejo del formulario
+        document.getElementById('actregistradaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Formulario enviado correctamente');
+            // Aquí puedes agregar la lógica para enviar los datos a tu API
+        });
+    </script>
+</body>
+</html>
