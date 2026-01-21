@@ -90,6 +90,12 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
+        select:disabled,
+        input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .evidence-tabs {
             display: flex;
             gap: 10px;
@@ -266,6 +272,41 @@
             margin-left: 10px;
         }
 
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -287,6 +328,13 @@
     </style>
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <p>Cargando datos desde AppSheet...</p>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>ACTREGISTRADA Form</h1>
@@ -309,21 +357,15 @@
 
                 <div class="form-group">
                     <label>CONTRATISTA<span class="required">*</span></label>
-                    <select id="contratista" required>
-                        <option value="">Seleccione una opción</option>
-                        <option value="contratista1">Contratista 1</option>
-                        <option value="contratista2">Contratista 2</option>
-                        <option value="contratista3">Contratista 3</option>
+                    <select id="contratista" required disabled>
+                        <option value="">Cargando contratistas...</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>ACTIVIDAD REF<span class="required">*</span></label>
-                    <select id="actividadref" required>
-                        <option value="">Seleccione una opción</option>
-                        <option value="actividad1">Actividad 1</option>
-                        <option value="actividad2">Actividad 2</option>
-                        <option value="actividad3">Actividad 3</option>
+                    <select id="actividadref" required disabled>
+                        <option value="">Cargando actividades...</option>
                     </select>
                 </div>
 
@@ -338,11 +380,8 @@
 
                 <div class="form-group">
                     <label>ABDCTIVIDAD_REGISTRADA<span class="required">*</span></label>
-                    <select id="abdctividad" required>
-                        <option value="">Seleccione una opción</option>
-                        <option value="registrada1">Registrada 1</option>
-                        <option value="registrada2">Registrada 2</option>
-                        <option value="registrada3">Registrada 3</option>
+                    <select id="abdctividad" required disabled>
+                        <option value="">Cargando opciones...</option>
                     </select>
                 </div>
 
@@ -389,10 +428,89 @@
             tableName: 'ACTREGISTRADA'
         };
 
-        // Variables globales para archivos
+        // Variables globales
         let selectedImage = null;
         let selectedPdf = null;
         let selectedEvidenceType = 'imagen';
+
+        // Función para cargar datos desde AppSheet
+        async function loadDataFromAppSheet(tableName, selectId, columnName) {
+            try {
+                const response = await fetch(`https://api.appsheet.com/api/v2/apps/${APPSHEET_CONFIG.appId}/tables/${tableName}/Action`, {
+                    method: 'POST',
+                    headers: {
+                        'ApplicationAccessKey': APPSHEET_CONFIG.apiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        Action: 'Find',
+                        Properties: {
+                            Locale: 'es-CO',
+                            Selector: 'Filter(${tableName}, true)'
+                        },
+                        Rows: []
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const select = document.getElementById(selectId);
+                    select.innerHTML = '<option value="">Seleccione una opción</option>';
+                    
+                    // Crear un Set para valores únicos
+                    const uniqueValues = new Set();
+                    
+                    if (data.Rows && data.Rows.length > 0) {
+                        data.Rows.forEach(row => {
+                            const value = row[columnName];
+                            if (value && !uniqueValues.has(value)) {
+                                uniqueValues.add(value);
+                                const option = document.createElement('option');
+                                option.value = value;
+                                option.textContent = value;
+                                select.appendChild(option);
+                            }
+                        });
+                    }
+                    
+                    select.disabled = false;
+                    return true;
+                } else {
+                    console.error(`Error al cargar ${tableName}:`, await response.text());
+                    return false;
+                }
+            } catch (error) {
+                console.error(`Error al cargar ${tableName}:`, error);
+                return false;
+            }
+        }
+
+        // Cargar todas las tablas necesarias al inicio
+        async function initializeForm() {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            loadingOverlay.classList.add('show');
+
+            try {
+                // Cargar Contratistas (ajusta el nombre de la tabla y columna según tu AppSheet)
+                await loadDataFromAppSheet('CONTRATISTA', 'contratista', 'Nombre');
+                
+                // Cargar Actividades (ajusta el nombre de la tabla y columna según tu AppSheet)
+                await loadDataFromAppSheet('ACTIVIDAD', 'actividadref', 'Nombre');
+                
+                // Cargar ABDCTIVIDAD_REGISTRADA (ajusta según tu AppSheet)
+                await loadDataFromAppSheet('ACTREGISTRADA', 'abdctividad', 'ABDCTIVIDAD_REGISTRADA');
+                
+                showAlert('✓ Datos cargados correctamente desde AppSheet', 'success');
+            } catch (error) {
+                showAlert('⚠ Error al cargar algunos datos. Por favor recarga la página.', 'error');
+                console.error('Error inicializando formulario:', error);
+            } finally {
+                loadingOverlay.classList.remove('show');
+            }
+        }
+
+        // Inicializar formulario cuando carga la página
+        window.addEventListener('DOMContentLoaded', initializeForm);
 
         // Tabs de evidencia
         const tabButtons = document.querySelectorAll('.tab-button');
