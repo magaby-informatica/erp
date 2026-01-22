@@ -3,269 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACTREGISTRADA Form</title>
+    <title>ACTREGISTRADA Form - Final</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
-        .container { background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); max-width: 700px; width: 100%; overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; }
-        .header h1 { font-size: 28px; font-weight: 600; margin-bottom: 5px; }
-        .header p { font-size: 14px; opacity: 0.9; }
-        .form-content { padding: 40px; }
-        .form-group { margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 14px; }
-        label .required { color: #e74c3c; margin-left: 3px; }
-        input[type="text"], input[type="date"], input[type="number"], select { width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 15px; transition: all 0.3s ease; background: #fafafa; }
-        input:focus, select:focus { outline: none; border-color: #667eea; background: white; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        select:disabled, input:disabled { opacity: 0.6; cursor: not-allowed; }
-        .evidence-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-button { flex: 1; padding: 12px; border: 2px solid #e0e0e0; background: #fafafa; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; text-align: center; }
-        .tab-button.active { background: #667eea; color: white; border-color: #667eea; }
-        .upload-area { border: 2px dashed #d0d0d0; border-radius: 8px; padding: 40px; text-align: center; background: #fafafa; cursor: pointer; transition: all 0.3s ease; }
-        .upload-area.file-selected { border-color: #27ae60; background: #f0fff4; }
-        .number-input-wrapper { display: flex; align-items: center; gap: 10px; }
-        .btn-counter { width: 40px; height: 40px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 8px; font-size: 20px; cursor: pointer; font-weight: 600; }
-        .form-actions { display: flex; gap: 15px; margin-top: 35px; padding-top: 25px; border-top: 2px solid #f0f0f0; }
-        .btn { flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
-        .btn-cancel { background: #f5f5f5; color: #666; }
-        .btn-submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        input[type="file"] { display: none; }
-        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: none; }
-        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
-        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
-        .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .loading-overlay.show { display: flex; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .container { background: white; border-radius: 15px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .header { text-align: center; margin-bottom: 25px; color: #444; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #333; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; }
+        input:focus, select:focus { border-color: #667eea; }
+        .btn-submit { background: #764ba2; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-submit:hover { background: #5a368c; transform: translateY(-1px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loadingOverlay">
-        <div style="background: white; padding: 30px; border-radius: 12px; text-align: center;">
-            <div style="border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-            <p>Sincronizando con AppSheet...</p>
-        </div>
+    <div id="loading">
+        <div class="loader"></div>
+        <strong>Sincronizando con AppSheet...</strong>
     </div>
 
     <div class="container">
         <div class="header">
-            <h1>ACTREGISTRADA Form</h1>
+            <h2>ACTREGISTRADA Form</h2>
             <p>Complete todos los campos requeridos</p>
         </div>
 
-        <div class="form-content">
-            <div id="alertContainer"></div>
+        <form id="actForm">
+            <div class="form-group">
+                <label>IDACTIVI *</label>
+                <input type="number" id="idactivi" value="8" required>
+            </div>
 
-            <form id="actregistradaForm">
-                <div class="form-group">
-                    <label>IDACTIVI<span class="required">*</span></label>
-                    <input type="text" id="idactivi" value="8" required>
-                </div>
+            <div class="form-group">
+                <label>FECHA *</label>
+                <input type="date" id="fecha" value="2026-01-21" required>
+            </div>
 
-                <div class="form-group">
-                    <label>FECHA<span class="required">*</span></label>
-                    <input type="date" id="fecha" value="2026-01-21" required>
-                </div>
+            <div class="form-group">
+                <label>CONTRATISTA *</label>
+                <select id="contratista" required>
+                    <option value="">Cargando contratistas...</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label>CONTRATISTA<span class="required">*</span></label>
-                    <select id="contratista" required disabled>
-                        <option value="">Cargando contratistas...</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>ACTIVIDAD REF *</label>
+                <select id="actividadref" required>
+                    <option value="">Cargando actividades...</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label>ACTIVIDAD REF<span class="required">*</span></label>
-                    <select id="actividadref" required disabled>
-                        <option value="">Cargando actividades...</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>ADCTIVIDAD_REGISTRADA *</label>
+                <select id="adctividad" required>
+                    <option value="">Cargando opciones...</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label>EVIDENCIATIPO</label>
-                    <div class="evidence-tabs">
-                        <button type="button" class="tab-button active" data-type="imagen">IMAGEN</button>
-                        <button type="button" class="tab-button" data-type="documento">DOCUMENTO</button>
-                        <button type="button" class="tab-button" data-type="mari">MARI</button>
-                    </div>
-                </div>
+            <div class="form-group">
+                <label>EVIDENCIATIPO</label>
+                <select id="evidenciatipo">
+                    <option value="IMAGEN">IMAGEN</option>
+                    <option value="DOCUMENTO">DOCUMENTO</option>
+                    <option value="MARI">MARI</option>
+                </select>
+            </div>
 
-                <div class="form-group">
-                    <label>ADCTIVIDAD_REGISTRADA<span class="required">*</span></label>
-                    <select id="adctividad" required disabled>
-                        <option value="">Cargando sugerencias...</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label>SUBIR IMAGEN</label>
+                <input type="file" id="imgInput" accept="image/*">
+            </div>
 
-                <div class="form-group">
-                    <label>IMAGEN</label>
-                    <div class="upload-area" id="imageUploadArea" onclick="document.getElementById('imageUpload').click()">
-                        <div style="font-size: 40px;">📷</div>
-                        <div class="upload-text">Haz clic para subir imagen</div>
-                    </div>
-                    <input type="file" id="imageUpload" accept="image/*">
-                </div>
+            <div class="form-group">
+                <label>SUBIR PDF</label>
+                <input type="file" id="fileInput" accept=".pdf">
+            </div>
 
-                <div class="form-group">
-                    <label>DOCUMENTO PDF</label>
-                    <div class="upload-area" id="pdfUploadArea" onclick="document.getElementById('pdfUpload').click()">
-                        <div style="font-size: 40px;">📄</div>
-                        <div class="upload-text">Haz clic para subir PDF</div>
-                    </div>
-                    <input type="file" id="pdfUpload" accept=".pdf">
-                </div>
+            <div class="form-group">
+                <label>MARI (Número)</label>
+                <input type="number" id="mari" value="0">
+            </div>
 
-                <div class="form-group">
-                    <label>MARI</label>
-                    <div class="number-input-wrapper">
-                        <button type="button" class="btn-counter" onclick="decrementMari()">−</button>
-                        <input type="number" id="mari" value="0" min="0">
-                        <button type="button" class="btn-counter" onclick="incrementMari()">+</button>
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn btn-cancel" onclick="resetForm()">Cancelar</button>
-                    <button type="submit" class="btn btn-submit" id="submitBtn">Guardar</button>
-                </div>
-            </form>
-        </div>
+            <button type="submit" class="btn-submit" id="btnSave">Guardar Registro</button>
+        </form>
     </div>
 
     <script>
-        const CONFIG = {
-            appId: 'a74ca874-ee86-4033-842d-a0fd38319133',
-            apiKey: 'V2-dyqTn-rK0tb-FhHEl-WBVMk-Qazs9-t4Vd5-rYg8c-4LS14',
-            tableName: 'ACTREGISTRADA'
-        };
+        // URL de tu Aplicación Web de Google Script
+        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
 
-        let selectedImage = null;
-        let selectedPdf = null;
-        let evidenceType = 'imagen';
-
-        // Función para cargar datos de AppSheet
-        async function loadData(tableName, selectId, columnName) {
-            const select = document.getElementById(selectId);
+        // Función para cargar datos en los desplegables
+        async function loadDrop(table, elId, col) {
+            const el = document.getElementById(elId);
             try {
-                const response = await fetch(`https://api.appsheet.com/api/v2/apps/${CONFIG.appId}/tables/${tableName}/Action`, {
+                const res = await fetch(PROXY_URL, {
                     method: 'POST',
-                    headers: { 'ApplicationAccessKey': CONFIG.apiKey, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] })
+                    body: JSON.stringify({ 
+                        tableName: table, 
+                        payload: { Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] } 
+                    })
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    select.innerHTML = '<option value="">Seleccione una opción</option>';
-                    const rows = Array.isArray(data) ? data : (data.Rows || []);
-                    const unique = [...new Set(rows.map(r => r[columnName]).filter(v => v))];
-                    unique.forEach(val => {
-                        const opt = document.createElement('option');
-                        opt.value = opt.textContent = val;
-                        select.appendChild(opt);
-                    });
-                    select.disabled = false;
-                }
-            } catch (e) { console.error("Error cargando " + selectId, e); }
+                const data = await res.json();
+                el.innerHTML = '<option value="">Seleccione una opción</option>';
+                const rows = Array.isArray(data) ? data : (data.Rows || []);
+                
+                // Extraer valores únicos de la columna especificada
+                const uniqueValues = [...new Set(rows.map(r => r[col]).filter(v => v))];
+                uniqueValues.forEach(v => {
+                    const o = document.createElement('option');
+                    o.value = o.textContent = v;
+                    el.appendChild(o);
+                });
+            } catch (e) { 
+                el.innerHTML = '<option>Error al cargar</option>';
+                console.error("Error en " + elId, e);
+            }
         }
 
-        // Inicializar
-        window.addEventListener('DOMContentLoaded', async () => {
-            document.getElementById('loadingOverlay').classList.add('show');
+        // Cargar datos al iniciar
+        window.onload = async () => {
+            document.getElementById('loading').style.display = 'flex';
             await Promise.all([
-                loadData('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA'),
-                loadData('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF'),
-                loadData('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
+                loadDrop('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA'),
+                loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF'),
+                loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
             ]);
-            document.getElementById('loadingOverlay').classList.remove('show');
-        });
-
-        // Tabs
-        document.querySelectorAll('.tab-button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                evidenceType = this.dataset.type;
-            });
-        });
-
-        // Contadores
-        function incrementMari() { document.getElementById('mari').value++; }
-        function decrementMari() { if(document.getElementById('mari').value > 0) document.getElementById('mari').value--; }
-
-        // Archivos
-        document.getElementById('imageUpload').onchange = (e) => {
-            if(e.target.files[0]) {
-                selectedImage = e.target.files[0];
-                document.getElementById('imageUploadArea').classList.add('file-selected');
-                document.getElementById('imageUploadArea').querySelector('.upload-text').innerText = "✓ " + selectedImage.name;
-            }
-        };
-        document.getElementById('pdfUpload').onchange = (e) => {
-            if(e.target.files[0]) {
-                selectedPdf = e.target.files[0];
-                document.getElementById('pdfUploadArea').classList.add('file-selected');
-                document.getElementById('pdfUploadArea').querySelector('.upload-text').innerText = "✓ " + selectedPdf.name;
-            }
+            document.getElementById('loading').style.display = 'none';
         };
 
-        function resetForm() {
-            document.getElementById('actregistradaForm').reset();
-            selectedImage = selectedPdf = null;
-            document.querySelectorAll('.upload-area').forEach(u => {
-                u.classList.remove('file-selected');
-                u.querySelector('.upload-text').innerText = u.id.includes('image') ? "Haz clic para subir imagen" : "Haz clic para subir PDF";
-            });
-        }
-
-        function showAlert(msg, type) {
-            const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert ${type}">${msg}</div>`;
-            setTimeout(() => container.innerHTML = '', 4000);
-        }
-
-        const toBase64 = file => new Promise((res, rej) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => res(reader.result.split(',')[1]);
-            reader.onerror = rej;
+        // Convertir archivos a Base64 para AppSheet
+        const toB64 = f => new Promise((res, rej) => {
+            const r = new FileReader();
+            r.readAsDataURL(f);
+            r.onload = () => res(r.result.split(',')[1]);
+            r.onerror = rej;
         });
 
-        // Enviar
-        document.getElementById('actregistradaForm').onsubmit = async (e) => {
+        // Enviar formulario
+        document.getElementById('actForm').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
+            const btn = document.getElementById('btnSave');
             btn.disabled = true;
-            btn.innerHTML = 'Guardando... <span class="loader"></span>';
+            btn.innerText = 'Guardando...';
+
+            const row = {
+                IDACTIVI: document.getElementById('idactivi').value,
+                FECHA: document.getElementById('fecha').value,
+                CONTRATISTA: document.getElementById('contratista').value,
+                ACTIVIDADREF: document.getElementById('actividadref').value,
+                ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
+                EVIDENCIATIPO: document.getElementById('evidenciatipo').value,
+                MARI: document.getElementById('mari').value
+            };
+
+            // Procesar Imagen y PDF
+            const imgFile = document.getElementById('imgInput').files[0];
+            const pdfFile = document.getElementById('fileInput').files[0];
+            if(imgFile) row.IMAGEN = await toB64(imgFile);
+            if(pdfFile) row.FILE = await toB64(pdfFile);
 
             try {
-                const row = {
-                    IDACTIVI: document.getElementById('idactivi').value,
-                    FECHA: document.getElementById('fecha').value,
-                    CONTRATISTA: document.getElementById('contratista').value,
-                    ACTIVIDADREF: document.getElementById('actividadref').value,
-                    EVIDENCIATIPO: evidenceType,
-                    ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
-                    MARI: parseInt(document.getElementById('mari').value)
-                };
-
-                if(selectedImage) row.IMAGEN = await toBase64(selectedImage);
-                if(selectedPdf) row.FILE = await toBase64(selectedPdf);
-
-                const res = await fetch(`https://api.appsheet.com/api/v2/apps/${CONFIG.appId}/tables/${CONFIG.tableName}/Action`, {
+                const response = await fetch(PROXY_URL, {
                     method: 'POST',
-                    headers: { 'ApplicationAccessKey': CONFIG.apiKey, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] })
+                    body: JSON.stringify({ 
+                        tableName: 'ACTREGISTRADA', 
+                        payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } 
+                    })
                 });
-
-                if(res.ok) {
-                    showAlert("✓ Guardado correctamente", "success");
-                    resetForm();
+                
+                if(response.ok) {
+                    alert('¡Registro guardado con éxito!');
+                    location.reload();
                 } else { throw new Error(); }
             } catch (e) {
-                showAlert("✗ Error al guardar", "error");
-            } finally {
+                alert('Error al guardar en AppSheet. Verifique la conexión.');
                 btn.disabled = false;
-                btn.innerHTML = 'Guardar';
+                btn.innerText = 'Guardar Registro';
             }
         };
     </script>
