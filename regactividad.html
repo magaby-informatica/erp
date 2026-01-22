@@ -48,6 +48,7 @@
     </div>
 
     <script>
+        // TU URL YA ESTÁ PEGADA AQUÍ ABAJO:
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
 
         async function loadDrop(table, elId, col) {
@@ -72,8 +73,8 @@
         window.onload = async () => {
             document.getElementById('loading').style.display = 'flex';
             await Promise.all([
-                loadDrop('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA'),
-                loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF'),
+                loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
+                loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDAD'),
                 loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
             ]);
             document.getElementById('loading').style.display = 'none';
@@ -110,15 +111,12 @@
                     body: JSON.stringify({ tableName: 'ACTREGISTRADA', payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } })
                 });
                 if(response.ok) { 
-                    alert('¡Éxito! Registro guardado.'); 
-                    location.reload(); 
-                } else { 
-                    throw new Error(); 
-                }
+                    alert('¡Éxito! Registro guardado en AppSheet.');
+                    location.reload();
+                } else { throw new Error(); }
             } catch (e) { 
-                alert('Error al guardar'); 
-                btn.disabled = false; 
-                btn.innerText = 'Guardar Registro'; 
+                alert('Error al guardar el registro.');
+                btn.disabled = false; btn.innerText = 'Guardar Registro';
             }
         };
     </script>
