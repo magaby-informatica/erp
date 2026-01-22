@@ -29,23 +29,21 @@
         .btn { flex: 1; padding: 14px 24px; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
         .btn-cancel { background: #f5f5f5; color: #666; }
         .btn-submit { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
         input[type="file"] { display: none; }
-        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
-        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert { padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: none; }
+        .alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
+        .alert.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
         .loading-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .loading-overlay.show { display: flex; }
-        .loading-content { background: white; padding: 30px; border-radius: 12px; text-align: center; }
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; margin-left: 10px; }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-left: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
+        <div style="background: white; padding: 30px; border-radius: 12px; text-align: center;">
             <div style="border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 15px;"></div>
-            <p>Conectando con AppSheet...</p>
+            <p>Sincronizando con AppSheet...</p>
         </div>
     </div>
 
@@ -95,7 +93,7 @@
                 <div class="form-group">
                     <label>ADCTIVIDAD_REGISTRADA<span class="required">*</span></label>
                     <select id="adctividad" required disabled>
-                        <option value="">Cargando opciones...</option>
+                        <option value="">Cargando sugerencias...</option>
                     </select>
                 </div>
 
@@ -103,7 +101,7 @@
                     <label>IMAGEN</label>
                     <div class="upload-area" id="imageUploadArea" onclick="document.getElementById('imageUpload').click()">
                         <div style="font-size: 40px;">📷</div>
-                        <div class="upload-text">Haz clic para subir una imagen</div>
+                        <div class="upload-text">Haz clic para subir imagen</div>
                     </div>
                     <input type="file" id="imageUpload" accept="image/*">
                 </div>
@@ -112,7 +110,7 @@
                     <label>DOCUMENTO PDF</label>
                     <div class="upload-area" id="pdfUploadArea" onclick="document.getElementById('pdfUpload').click()">
                         <div style="font-size: 40px;">📄</div>
-                        <div class="upload-text">Haz clic para subir un PDF</div>
+                        <div class="upload-text">Haz clic para subir PDF</div>
                     </div>
                     <input type="file" id="pdfUpload" accept=".pdf">
                 </div>
@@ -135,7 +133,7 @@
     </div>
 
     <script>
-        const APPSHEET_CONFIG = {
+        const CONFIG = {
             appId: 'a74ca874-ee86-4033-842d-a0fd38319133',
             apiKey: 'V2-dyqTn-rK0tb-FhHEl-WBVMk-Qazs9-t4Vd5-rYg8c-4LS14',
             tableName: 'ACTREGISTRADA'
@@ -143,126 +141,97 @@
 
         let selectedImage = null;
         let selectedPdf = null;
-        let selectedEvidenceType = 'imagen';
+        let evidenceType = 'imagen';
 
-        async function loadDataFromAppSheet(tableName, selectId, columnName) {
+        // Función para cargar datos de AppSheet
+        async function loadData(tableName, selectId, columnName) {
+            const select = document.getElementById(selectId);
             try {
-                const response = await fetch(`https://api.appsheet.com/api/v2/apps/${APPSHEET_CONFIG.appId}/tables/${tableName}/Action`, {
+                const response = await fetch(`https://api.appsheet.com/api/v2/apps/${CONFIG.appId}/tables/${tableName}/Action`, {
                     method: 'POST',
-                    headers: {
-                        'ApplicationAccessKey': APPSHEET_CONFIG.apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        Action: 'Find',
-                        Properties: { Locale: 'es-CO' },
-                        Rows: []
-                    })
+                    headers: { 'ApplicationAccessKey': CONFIG.apiKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    const select = document.getElementById(selectId);
                     select.innerHTML = '<option value="">Seleccione una opción</option>';
-                    
-                    const uniqueValues = new Set();
                     const rows = Array.isArray(data) ? data : (data.Rows || []);
-
-                    rows.forEach(row => {
-                        const value = row[columnName];
-                        if (value && !uniqueValues.has(value)) {
-                            uniqueValues.add(value);
-                            const option = document.createElement('option');
-                            option.value = value;
-                            option.textContent = value;
-                            select.appendChild(option);
-                        }
+                    const unique = [...new Set(rows.map(r => r[columnName]).filter(v => v))];
+                    unique.forEach(val => {
+                        const opt = document.createElement('option');
+                        opt.value = opt.textContent = val;
+                        select.appendChild(opt);
                     });
-                    
                     select.disabled = false;
-                    return true;
                 }
-                return false;
-            } catch (error) {
-                console.error(`Error en ${tableName}:`, error);
-                return false;
-            }
+            } catch (e) { console.error("Error cargando " + selectId, e); }
         }
 
-        async function initializeForm() {
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            loadingOverlay.classList.add('show');
+        // Inicializar
+        window.addEventListener('DOMContentLoaded', async () => {
+            document.getElementById('loadingOverlay').classList.add('show');
+            await Promise.all([
+                loadData('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA'),
+                loadData('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF'),
+                loadData('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
+            ]);
+            document.getElementById('loadingOverlay').classList.remove('show');
+        });
 
-            try {
-                // Tablas y Columnas según tus capturas
-                await loadDataFromAppSheet('ACTIVIDADESDELCONTRATO', 'contratista', 'CONTRATISTA');
-                await loadDataFromAppSheet('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDADREF');
-                await loadDataFromAppSheet('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA');
-                
-                showAlert('✓ Datos sincronizados', 'success');
-            } catch (error) {
-                showAlert('⚠ Error de conexión', 'error');
-            } finally {
-                loadingOverlay.classList.remove('show');
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', initializeForm);
-
-        // Lógica de Tabs e Inputs
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', function() {
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        // Tabs
+        document.querySelectorAll('.tab-button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                selectedEvidenceType = this.getAttribute('data-type');
+                evidenceType = this.dataset.type;
             });
         });
 
-        function incrementMari() { document.getElementById('mari').value = parseInt(document.getElementById('mari').value) + 1; }
-        function decrementMari() { 
-            const val = parseInt(document.getElementById('mari').value);
-            if (val > 0) document.getElementById('mari').value = val - 1; 
-        }
+        // Contadores
+        function incrementMari() { document.getElementById('mari').value++; }
+        function decrementMari() { if(document.getElementById('mari').value > 0) document.getElementById('mari').value--; }
 
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
+        // Archivos
+        document.getElementById('imageUpload').onchange = (e) => {
+            if(e.target.files[0]) {
                 selectedImage = e.target.files[0];
                 document.getElementById('imageUploadArea').classList.add('file-selected');
-                document.getElementById('imageUploadArea').querySelector('.upload-text').textContent = `✓ ${selectedImage.name}`;
+                document.getElementById('imageUploadArea').querySelector('.upload-text').innerText = "✓ " + selectedImage.name;
             }
-        });
-
-        document.getElementById('pdfUpload').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
+        };
+        document.getElementById('pdfUpload').onchange = (e) => {
+            if(e.target.files[0]) {
                 selectedPdf = e.target.files[0];
                 document.getElementById('pdfUploadArea').classList.add('file-selected');
-                document.getElementById('pdfUploadArea').querySelector('.upload-text').textContent = `✓ ${selectedPdf.name}`;
+                document.getElementById('pdfUploadArea').querySelector('.upload-text').innerText = "✓ " + selectedPdf.name;
             }
-        });
-
-        function showAlert(message, type) {
-            const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert ${type}">${message}</div>`;
-            setTimeout(() => container.innerHTML = '', 4000);
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
+        };
 
         function resetForm() {
             document.getElementById('actregistradaForm').reset();
-            selectedImage = null; selectedPdf = null;
-            document.querySelectorAll('.upload-area').forEach(a => a.classList.remove('file-selected'));
-            showAlert('Formulario limpiado', 'success');
+            selectedImage = selectedPdf = null;
+            document.querySelectorAll('.upload-area').forEach(u => {
+                u.classList.remove('file-selected');
+                u.querySelector('.upload-text').innerText = u.id.includes('image') ? "Haz clic para subir imagen" : "Haz clic para subir PDF";
+            });
         }
 
-        document.getElementById('actregistradaForm').addEventListener('submit', async function(e) {
+        function showAlert(msg, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert ${type}">${msg}</div>`;
+            setTimeout(() => container.innerHTML = '', 4000);
+        }
+
+        const toBase64 = file => new Promise((res, rej) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => res(reader.result.split(',')[1]);
+            reader.onerror = rej;
+        });
+
+        // Enviar
+        document.getElementById('actregistradaForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
@@ -274,40 +243,31 @@
                     FECHA: document.getElementById('fecha').value,
                     CONTRATISTA: document.getElementById('contratista').value,
                     ACTIVIDADREF: document.getElementById('actividadref').value,
-                    EVIDENCIATIPO: selectedEvidenceType,
+                    EVIDENCIATIPO: evidenceType,
                     ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
                     MARI: parseInt(document.getElementById('mari').value)
                 };
 
-                if (selectedImage) row.IMAGEN = await fileToBase64(selectedImage);
-                if (selectedPdf) row.FILE = await fileToBase64(selectedPdf);
+                if(selectedImage) row.IMAGEN = await toBase64(selectedImage);
+                if(selectedPdf) row.FILE = await toBase64(selectedPdf);
 
-                const response = await fetch(`https://api.appsheet.com/api/v2/apps/${APPSHEET_CONFIG.appId}/tables/${APPSHEET_CONFIG.tableName}/Action`, {
+                const res = await fetch(`https://api.appsheet.com/api/v2/apps/${CONFIG.appId}/tables/${CONFIG.tableName}/Action`, {
                     method: 'POST',
-                    headers: {
-                        'ApplicationAccessKey': APPSHEET_CONFIG.apiKey,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        Action: 'Add',
-                        Properties: { Locale: 'es-CO' },
-                        Rows: [row]
-                    })
+                    headers: { 'ApplicationAccessKey': CONFIG.apiKey, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] })
                 });
 
-                if (response.ok) {
-                    showAlert('✓ Guardado exitosamente', 'success');
-                    setTimeout(resetForm, 2000);
-                } else {
-                    throw new Error('Error en servidor');
-                }
-            } catch (error) {
-                showAlert('✗ Error al guardar', 'error');
+                if(res.ok) {
+                    showAlert("✓ Guardado correctamente", "success");
+                    resetForm();
+                } else { throw new Error(); }
+            } catch (e) {
+                showAlert("✗ Error al guardar", "error");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = 'Guardar';
             }
-        });
+        };
     </script>
 </body>
 </html>
