@@ -1,124 +1,57 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Actividad</title>
-    <style>
-        :root { --primary: #764ba2; --secondary: #667eea; }
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, var(--secondary), var(--primary)); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .container { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 500px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
-        h2 { text-align: center; color: #444; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 13px; color: #555; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; box-sizing: border-box; outline: none; transition: 0.3s; }
-        input:focus, select:focus { border-color: var(--secondary); box-shadow: 0 0 5px rgba(102, 126, 234, 0.3); }
-        .btn-submit { background: var(--primary); color: white; border: none; padding: 14px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
-        .btn-submit:hover { background: #5a368c; transform: translateY(-1px); }
-        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: flex; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 10px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
-</head>
-<body>
-    <div id="loading"><div class="loader"></div><strong>Sincronizando con AppSheet...</strong></div>
+<script>
+    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
 
-    <div class="container">
-        <h2>ACTREGISTRADA Form</h2>
-        <form id="actForm">
-            <div class="form-group"><label>IDACTIVI *</label><input type="number" id="idactivi" value="8" required></div>
-            <div class="form-group"><label>FECHA *</label><input type="date" id="fecha" value="2026-01-21" required></div>
-            <div class="form-group"><label>CONTRATISTA *</label><select id="contratista" required><option value="">Cargando...</option></select></div>
-            <div class="form-group"><label>ACTIVIDAD REF *</label><select id="actividadref" required><option value="">Cargando...</option></select></div>
-            <div class="form-group"><label>ADCTIVIDAD_REGISTRADA *</label><select id="adctividad" required><option value="">Cargando...</option></select></div>
-            <div class="form-group">
-                <label>EVIDENCIATIPO</label>
-                <select id="evidenciatipo">
-                    <option value="IMAGEN">IMAGEN</option>
-                    <option value="DOCUMENTO">DOCUMENTO</option>
-                    <option value="MARI">MARI</option>
-                </select>
-            </div>
-            <div class="form-group"><label>SUBIR IMAGEN</label><input type="file" id="imgInput" accept="image/*"></div>
-            <div class="form-group"><label>SUBIR PDF</label><input type="file" id="fileInput" accept=".pdf"></div>
-            <div class="form-group"><label>MARI (Número)</label><input type="number" id="mari" value="0"></div>
-            <button type="submit" class="btn-submit" id="btnSave">Guardar Registro</button>
-        </form>
-    </div>
-
-    <script>
-        // TU URL YA ESTÁ PEGADA AQUÍ ABAJO:
-        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
-
-        async function loadDrop(table, elId, col) {
-            const el = document.getElementById(elId);
-            try {
-                const res = await fetch(PROXY_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ tableName: table, payload: { Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] } })
-                });
-                const data = await res.json();
-                el.innerHTML = '<option value="">Seleccione...</option>';
-                const rows = Array.isArray(data) ? data : (data.Rows || []);
-                [...new Set(rows.map(r => r[col]).filter(v => v))].forEach(v => {
-                    const o = document.createElement('option'); o.value = o.textContent = v; el.appendChild(o);
-                });
-            } catch (e) { 
-                el.innerHTML = '<option value="">Error al cargar</option>';
-                console.error("Error cargando " + elId, e);
+    async function loadDrop(table, elId, col) {
+        const el = document.getElementById(elId);
+        try {
+            const res = await fetch(PROXY_URL, {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    tableName: table, 
+                    payload: { 
+                        Action: 'Find', 
+                        Properties: { Locale: 'es-CO' }, 
+                        Rows: [] 
+                    } 
+                })
+            });
+            const data = await res.json();
+            el.innerHTML = '<option value="">Seleccione...</option>';
+            
+            // AppSheet a veces devuelve la lista directa o dentro de un objeto "Rows"
+            const rows = Array.isArray(data) ? data : (data.Rows || []);
+            
+            if (rows.length === 0) {
+                console.warn(`No se encontraron datos en la tabla: ${table}`);
             }
+
+            // Filtrar valores únicos y llenar el select
+            [...new Set(rows.map(r => r[col]).filter(v => v))].forEach(v => {
+                const o = document.createElement('option'); 
+                o.value = o.textContent = v; 
+                el.appendChild(o);
+            });
+        } catch (e) { 
+            el.innerHTML = '<option value="">Error al cargar</option>';
+            console.error("Error cargando " + elId + " desde tabla " + table, e);
         }
+    }
 
-        window.onload = async () => {
-            document.getElementById('loading').style.display = 'flex';
-            await Promise.all([
-                loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
-                loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDAD'),
-                loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
-            ]);
-            document.getElementById('loading').style.display = 'none';
-        };
-
-        const toB64 = f => new Promise((res, rej) => {
-            const r = new FileReader(); r.readAsDataURL(f);
-            r.onload = () => res(r.result.split(',')[1]); r.onerror = rej;
-        });
-
-        document.getElementById('actForm').onsubmit = async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btnSave');
-            btn.disabled = true; btn.innerText = 'Enviando...';
-
-            const row = {
-                IDACTIVI: document.getElementById('idactivi').value,
-                FECHA: document.getElementById('fecha').value,
-                CONTRATISTA: document.getElementById('contratista').value,
-                ACTIVIDADREF: document.getElementById('actividadref').value,
-                ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
-                EVIDENCIATIPO: document.getElementById('evidenciatipo').value,
-                MARI: document.getElementById('mari').value
-            };
-
-            const imgFile = document.getElementById('imgInput').files[0];
-            const pdfFile = document.getElementById('fileInput').files[0];
-            if(imgFile) row.IMAGEN = await toB64(imgFile);
-            if(pdfFile) row.FILE = await toB64(pdfFile);
-
-            try {
-                const response = await fetch(PROXY_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ tableName: 'ACTREGISTRADA', payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } })
-                });
-                if(response.ok) { 
-                    alert('¡Éxito! Registro guardado en AppSheet.');
-                    location.reload();
-                } else { throw new Error(); }
-            } catch (e) { 
-                alert('Error al guardar el registro.');
-                btn.disabled = false; btn.innerText = 'Guardar Registro';
-            }
-        };
-    </script>
-</body>
-</html>
+    window.onload = async () => {
+        document.getElementById('loading').style.display = 'flex';
+        
+        await Promise.all([
+            // 1. Cargamos CONTRATISTAS (Tabla: CONTRATISTAS, Columna: NOMBRE)
+            loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
+            
+            // 2. Cargamos ACTIVIDADES (Tabla: ACTIVIDADESDELCONTRATO, Columna: ACTIVIDAD)
+            // Nota: Asegúrate que en AppSheet el nombre de la tabla sea exactamente este
+            loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDAD'),
+            
+            // 3. Cargamos la columna Enum (Tabla: ACTREGISTRADA, Columna: ADCTIVIDAD_REGISTRADA)
+            loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
+        ]);
+        
+        document.getElementById('loading').style.display = 'none';
+    };
+</script>
