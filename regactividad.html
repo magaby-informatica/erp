@@ -57,36 +57,24 @@
                     method: 'POST',
                     body: JSON.stringify({ tableName: table, payload: { Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] } })
                 });
-                
-                if (!res.ok) throw new Error('Error en la respuesta del servidor');
-                
                 const data = await res.json();
                 el.innerHTML = '<option value="">Seleccione una opción</option>';
                 const rows = Array.isArray(data) ? data : (data.Rows || []);
-                
-                if (rows.length === 0) {
-                    console.warn(`La tabla ${table} no devolvió filas.`);
-                }
-
                 [...new Set(rows.map(r => r[col]).filter(v => v))].forEach(v => {
                     const o = document.createElement('option'); o.value = o.textContent = v; el.appendChild(o);
                 });
             } catch (e) { 
                 el.innerHTML = '<option value="">Error al cargar</option>';
-                console.error(`Error cargando tabla ${table}:`, e);
+                console.error("Error cargando tabla " + table, e);
             }
         }
 
-        // Corregido: Esperar a que el DOM esté listo para evitar el error de estilo en blanco
         document.addEventListener('DOMContentLoaded', async () => {
             const loading = document.getElementById('loading');
             try {
                 await Promise.all([
-                    // Tabla: CONTRATISTAS, Columna: NOMBRE
                     loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
-                    // TABLA: ACTIVIDADES (Corregido el nombre según AppSheet), Columna: ACTIVIDAD
                     loadDrop('ACTIVIDADES', 'actividadref', 'ACTIVIDAD'),
-                    // Tabla: ACTREGISTRADA, Columna: ADCTIVIDAD_REGISTRADA
                     loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
                 ]);
             } finally {
@@ -104,32 +92,41 @@
             const btn = document.getElementById('btnSave');
             btn.disabled = true; btn.innerText = 'Enviando...';
 
-            const row = {
-                IDACTIVI: document.getElementById('idactivi').value,
-                FECHA: document.getElementById('fecha').value,
-                CONTRATISTA: document.getElementById('contratista').value,
-                ACTIVIDADREF: document.getElementById('actividadref').value,
-                ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
-                EVIDENCIATIPO: document.getElementById('evidenciatipo').value,
-                MARI: document.getElementById('mari').value
-            };
-
-            const imgFile = document.getElementById('imgInput').files[0];
-            const pdfFile = document.getElementById('fileInput').files[0];
-            if(imgFile) row.IMAGEN = await toB64(imgFile);
-            if(pdfFile) row.FILE = await toB64(pdfFile);
-
             try {
+                // OBJETO CORREGIDO: Los nombres de las llaves coinciden con las columnas de AppSheet
+                const row = {
+                    "IDACTIVI": document.getElementById('idactivi').value,
+                    "FECHA": document.getElementById('fecha').value,
+                    "CONTRATISTA": document.getElementById('contratista').value,
+                    "ACTIVIDADREF": document.getElementById('actividadref').value,
+                    "ADCTIVIDAD_REGISTRADA": document.getElementById('adctividad').value,
+                    "EVIDENCIATIPO": document.getElementById('evidenciatipo').value,
+                    "MARI": document.getElementById('mari').value
+                };
+
+                const imgFile = document.getElementById('imgInput').files[0];
+                const pdfFile = document.getElementById('fileInput').files[0];
+                if(imgFile) row.IMAGEN = await toB64(imgFile);
+                if(pdfFile) row.FILE = await toB64(pdfFile);
+
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
-                    body: JSON.stringify({ tableName: 'ACTREGISTRADA', payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } })
+                    body: JSON.stringify({ 
+                        tableName: 'ACTREGISTRADA', 
+                        payload: { 
+                            Action: 'Add', 
+                            Properties: { Locale: 'es-CO' }, 
+                            Rows: [row] 
+                        } 
+                    })
                 });
+
                 if(response.ok) { 
                     alert('¡Éxito! Registro guardado.'); 
                     location.reload(); 
                 } else { throw new Error(); }
             } catch (e) { 
-                alert('Error al guardar el registro.'); 
+                alert('Error al guardar el registro en AppSheet.'); 
                 btn.disabled = false; btn.innerText = 'Guardar Registro'; 
             }
         };
