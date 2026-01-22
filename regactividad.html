@@ -1,57 +1,177 @@
-<script>
-    const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACTREGISTRADA Form - Sistema de Registro</title>
+    <style>
+        :root { --primary: #764ba2; --secondary: #667eea; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, var(--secondary), var(--primary)); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; padding: 20px; }
+        .container { background: white; border-radius: 15px; width: 100%; max-width: 550px; padding: 35px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+        .header { text-align: center; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px; color: #333; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 10px; font-size: 15px; outline: none; transition: 0.3s; background: #fafafa; }
+        input:focus, select:focus { border-color: var(--secondary); background: #fff; box-shadow: 0 0 8px rgba(102, 126, 234, 0.2); }
+        .btn-submit { background: var(--primary); color: white; border: none; padding: 16px; width: 100%; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        .btn-submit:hover { background: #5a368c; transform: translateY(-1px); }
+        .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
+        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--secondary); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="loading"><div class="loader"></div><strong>Sincronizando con AppSheet...</strong></div>
 
-    async function loadDrop(table, elId, col) {
-        const el = document.getElementById(elId);
-        try {
-            const res = await fetch(PROXY_URL, {
-                method: 'POST',
-                body: JSON.stringify({ 
-                    tableName: table, 
-                    payload: { 
-                        Action: 'Find', 
-                        Properties: { Locale: 'es-CO' }, 
-                        Rows: [] 
-                    } 
-                })
-            });
-            const data = await res.json();
-            el.innerHTML = '<option value="">Seleccione...</option>';
-            
-            // AppSheet a veces devuelve la lista directa o dentro de un objeto "Rows"
-            const rows = Array.isArray(data) ? data : (data.Rows || []);
-            
-            if (rows.length === 0) {
-                console.warn(`No se encontraron datos en la tabla: ${table}`);
+    <div class="container">
+        <div class="header">
+            <h2 style="margin:0; color:#444;">ACTREGISTRADA Form</h2>
+            <p style="color:#777; font-size:14px; margin-top:5px;">Complete los campos obligatorios</p>
+        </div>
+
+        <form id="actForm">
+            <div class="form-group">
+                <label>IDACTIVI *</label>
+                <input type="number" id="idactivi" value="8" required>
+            </div>
+
+            <div class="form-group">
+                <label>FECHA *</label>
+                <input type="date" id="fecha" value="2026-01-21" required>
+            </div>
+
+            <div class="form-group">
+                <label>CONTRATISTA *</label>
+                <select id="contratista" required>
+                    <option value="">Cargando contratistas...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>ACTIVIDAD REF *</label>
+                <select id="actividadref" required>
+                    <option value="">Cargando actividades...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>ADCTIVIDAD_REGISTRADA *</label>
+                <select id="adctividad" required>
+                    <option value="">Cargando opciones...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>SUBIR IMAGEN</label>
+                <input type="file" id="imgInput" accept="image/*">
+            </div>
+
+            <div class="form-group">
+                <label>MARI (Cantidad)</label>
+                <input type="number" id="mari" value="0">
+            </div>
+
+            <button type="submit" class="btn-submit" id="btnSave">Guardar Registro</button>
+        </form>
+    </div>
+
+    <script>
+        const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
+
+        // Función de carga con manejo de JSON profundo
+        async function loadDrop(table, elId, col) {
+            const el = document.getElementById(elId);
+            try {
+                const res = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        tableName: table, 
+                        payload: { Action: 'Find', Properties: { Locale: 'es-CO' }, Rows: [] } 
+                    })
+                });
+                
+                const responseText = await res.text();
+                const data = JSON.parse(responseText);
+
+                if (data.error) throw new Error(data.error);
+
+                el.innerHTML = '<option value="">Seleccione una opción</option>';
+                const rows = Array.isArray(data) ? data : (data.Rows || []);
+                
+                // Limpieza de duplicados y valores vacíos
+                const uniqueValues = [...new Set(rows.map(r => r[col]).filter(v => v))];
+                
+                uniqueValues.sort().forEach(v => {
+                    const o = document.createElement('option');
+                    o.value = o.textContent = v;
+                    el.appendChild(o);
+                });
+            } catch (e) { 
+                el.innerHTML = '<option value="">Error de conexión con AppSheet</option>';
+                console.error(`Error en tabla ${table}:`, e);
             }
-
-            // Filtrar valores únicos y llenar el select
-            [...new Set(rows.map(r => r[col]).filter(v => v))].forEach(v => {
-                const o = document.createElement('option'); 
-                o.value = o.textContent = v; 
-                el.appendChild(o);
-            });
-        } catch (e) { 
-            el.innerHTML = '<option value="">Error al cargar</option>';
-            console.error("Error cargando " + elId + " desde tabla " + table, e);
         }
-    }
 
-    window.onload = async () => {
-        document.getElementById('loading').style.display = 'flex';
-        
-        await Promise.all([
-            // 1. Cargamos CONTRATISTAS (Tabla: CONTRATISTAS, Columna: NOMBRE)
-            loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
+        window.onload = async () => {
+            document.getElementById('loading').style.display = 'flex';
             
-            // 2. Cargamos ACTIVIDADES (Tabla: ACTIVIDADESDELCONTRATO, Columna: ACTIVIDAD)
-            // Nota: Asegúrate que en AppSheet el nombre de la tabla sea exactamente este
-            loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDAD'),
+            // Cargamos las 3 tablas con los nombres exactos de tus capturas
+            await Promise.all([
+                loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
+                loadDrop('ACTIVIDADESDELCONTRATO', 'actividadref', 'ACTIVIDAD'),
+                loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
+            ]);
             
-            // 3. Cargamos la columna Enum (Tabla: ACTREGISTRADA, Columna: ADCTIVIDAD_REGISTRADA)
-            loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
-        ]);
-        
-        document.getElementById('loading').style.display = 'none';
-    };
-</script>
+            document.getElementById('loading').style.display = 'none';
+        };
+
+        const toB64 = f => new Promise((res, rej) => {
+            const r = new FileReader();
+            r.readAsDataURL(f);
+            r.onload = () => res(r.result.split(',')[1]);
+            r.onerror = rej;
+        });
+
+        document.getElementById('actForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnSave');
+            btn.disabled = true;
+            btn.innerText = 'Guardando...';
+
+            const row = {
+                IDACTIVI: document.getElementById('idactivi').value,
+                FECHA: document.getElementById('fecha').value,
+                CONTRATISTA: document.getElementById('contratista').value,
+                ACTIVIDADREF: document.getElementById('actividadref').value,
+                ADCTIVIDAD_REGISTRADA: document.getElementById('adctividad').value,
+                MARI: document.getElementById('mari').value
+            };
+
+            const imgFile = document.getElementById('imgInput').files[0];
+            if(imgFile) row.IMAGEN = await toB64(imgFile);
+
+            try {
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ 
+                        tableName: 'ACTREGISTRADA', 
+                        payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } 
+                    })
+                });
+                
+                if(response.ok) {
+                    alert('¡Registro guardado con éxito!');
+                    location.reload();
+                } else {
+                    throw new Error('Respuesta no válida');
+                }
+            } catch (e) {
+                alert('Error al guardar. Revise la consola (F12).');
+                btn.disabled = false;
+                btn.innerText = 'Guardar Registro';
+            }
+        };
+    </script>
+</body>
+</html>
