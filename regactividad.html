@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Actividad - Final</title>
+    <title>ACTREGISTRADA Form - Oficial</title>
     <style>
         :root { --primary: #764ba2; --secondary: #667eea; }
         body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, var(--secondary), var(--primary)); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
@@ -46,6 +46,7 @@
     </div>
 
     <script>
+        // Esta URL es la de tu Google Apps Script (JavaScript de servidor)
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
 
         async function loadDrop(table, elId, col) {
@@ -63,23 +64,18 @@
                 });
             } catch (e) { 
                 el.innerHTML = '<option value="">Error de carga</option>';
-                console.error("Fallo en " + table, e);
             }
         }
 
-        // CAMBIO CRÍTICO: Usar DOMContentLoaded para evitar que se quede cargando infinitamente
         document.addEventListener('DOMContentLoaded', async () => {
             const loadingScreen = document.getElementById('loading');
             try {
                 await Promise.all([
-                    loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'), //
-                    loadDrop('ACTIVIDADES', 'actividadref', 'ACTIVIDAD'), //
-                    loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA') //
+                    loadDrop('CONTRATISTAS', 'contratista', 'NOMBRE'),
+                    loadDrop('ACTIVIDADES', 'actividadref', 'ACTIVIDAD'),
+                    loadDrop('ACTREGISTRADA', 'adctividad', 'ADCTIVIDAD_REGISTRADA')
                 ]);
-            } catch (err) {
-                console.error("Error inicial:", err);
             } finally {
-                // Esto quita la capa de carga
                 if (loadingScreen) loadingScreen.style.display = 'none';
             }
         });
@@ -92,11 +88,11 @@
         document.getElementById('actForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSave');
-            btn.disabled = true; btn.innerText = 'Enviando...';
+            btn.disabled = true; btn.innerText = 'Enviando datos...';
 
             try {
-                // Mapeo exacto de las columnas de tu tabla ACTREGISTRADA
-                const row = {
+                // Aquí usamos los nombres EXACTOS de tus columnas de AppSheet
+                const rowData = {
                     "IDACTIVI": document.getElementById('idactivi').value,
                     "FECHA": document.getElementById('fecha').value,
                     "CONTRATISTA": document.getElementById('contratista').value,
@@ -108,23 +104,32 @@
 
                 const imgFile = document.getElementById('imgInput').files[0];
                 const pdfFile = document.getElementById('fileInput').files[0];
-                if(imgFile) row.IMAGEN = await toB64(imgFile);
-                if(pdfFile) row.FILE = await toB64(pdfFile);
+                if(imgFile) rowData.IMAGEN = await toB64(imgFile);
+                if(pdfFile) rowData.FILE = await toB64(pdfFile);
 
                 const response = await fetch(PROXY_URL, {
                     method: 'POST',
                     body: JSON.stringify({ 
                         tableName: 'ACTREGISTRADA', 
-                        payload: { Action: 'Add', Properties: { Locale: 'es-CO' }, Rows: [row] } 
+                        payload: { 
+                            Action: 'Add', 
+                            Properties: { Locale: 'es-CO' }, 
+                            Rows: [rowData] 
+                        } 
                     })
                 });
 
-                if(response.ok) { 
-                    alert('¡Éxito! Registro guardado correctamente.'); 
+                const result = await response.json();
+
+                // Verificamos si AppSheet aceptó la fila
+                if(response.ok && !result.Errors) { 
+                    alert('¡Éxito! El registro se envió a AppSheet correctamente.'); 
                     location.reload(); 
-                } else { throw new Error(); }
+                } else { 
+                    throw new Error(result.Errors || "Error en el formato de datos"); 
+                }
             } catch (e) { 
-                alert('Error al guardar. Verifica los datos.'); 
+                alert('Error al enviar: ' + e.message); 
                 btn.disabled = false; btn.innerText = 'Guardar Registro'; 
             }
         };
