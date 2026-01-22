@@ -3,21 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ACTREGISTRADA Form - Final</title>
+    <title>ACTREGISTRADA Form</title>
     <style>
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .container { background: white; border-radius: 15px; width: 100%; max-width: 600px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        body { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            padding: 20px; 
+            margin: 0; 
+        }
+        .container { 
+            background: white; 
+            border-radius: 15px; 
+            width: 100%; 
+            max-width: 550px; 
+            padding: 30px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+        }
         .header { text-align: center; margin-bottom: 25px; color: #444; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; }
         .form-group { margin-bottom: 18px; }
         label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 14px; color: #333; }
         input, select { width: 100%; padding: 12px; border: 2px solid #eee; border-radius: 8px; font-size: 15px; outline: none; transition: 0.3s; }
-        input:focus, select:focus { border-color: #667eea; }
-        .btn-submit { background: #764ba2; color: white; border: none; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.3s; }
+        input:focus, select:focus { border-color: #667eea; background: #fdfdfd; }
+        .btn-submit { 
+            background: #764ba2; 
+            color: white; 
+            border: none; 
+            padding: 15px; 
+            width: 100%; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px; 
+            transition: 0.3s; 
+        }
         .btn-submit:hover { background: #5a368c; transform: translateY(-1px); }
         .btn-submit:disabled { background: #ccc; cursor: not-allowed; }
-        #loading { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; flex-direction: column; }
-        .loader { border: 5px solid #f3f3f3; border-top: 5px solid #667eea; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 10px; }
+        #loading { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(255,255,255,0.9); 
+            display: none; justify-content: center; align-items: center; 
+            z-index: 1000; flex-direction: column; 
+        }
+        .loader { 
+            border: 5px solid #f3f3f3; border-top: 5px solid #667eea; 
+            border-radius: 50%; width: 50px; height: 50px; 
+            animation: spin 1s linear infinite; margin-bottom: 10px; 
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -85,7 +121,7 @@
             </div>
 
             <div class="form-group">
-                <label>MARI (Número)</label>
+                <label>MARI (Cantidad)</label>
                 <input type="number" id="mari" value="0">
             </div>
 
@@ -94,10 +130,9 @@
     </div>
 
     <script>
-        // URL de tu Aplicación Web de Google Script
+        // URL DE TU APLICACIÓN WEB DE GOOGLE
         const PROXY_URL = 'https://script.google.com/macros/s/AKfycbzDsLi-7PNeDITvh28HvyAGESLpH_LJ8WDv0ZwG_F1PQOWdlirydZElL6deLeQwgoxB/exec';
 
-        // Función para cargar datos en los desplegables
         async function loadDrop(table, elId, col) {
             const el = document.getElementById(elId);
             try {
@@ -112,7 +147,6 @@
                 el.innerHTML = '<option value="">Seleccione una opción</option>';
                 const rows = Array.isArray(data) ? data : (data.Rows || []);
                 
-                // Extraer valores únicos de la columna especificada
                 const uniqueValues = [...new Set(rows.map(r => r[col]).filter(v => v))];
                 uniqueValues.forEach(v => {
                     const o = document.createElement('option');
@@ -120,12 +154,11 @@
                     el.appendChild(o);
                 });
             } catch (e) { 
-                el.innerHTML = '<option>Error al cargar</option>';
+                el.innerHTML = '<option>Error al cargar datos</option>';
                 console.error("Error en " + elId, e);
             }
         }
 
-        // Cargar datos al iniciar
         window.onload = async () => {
             document.getElementById('loading').style.display = 'flex';
             await Promise.all([
@@ -136,15 +169,11 @@
             document.getElementById('loading').style.display = 'none';
         };
 
-        // Convertir archivos a Base64 para AppSheet
         const toB64 = f => new Promise((res, rej) => {
-            const r = new FileReader();
-            r.readAsDataURL(f);
-            r.onload = () => res(r.result.split(',')[1]);
-            r.onerror = rej;
+            const r = new FileReader(); r.readAsDataURL(f);
+            r.onload = () => res(r.result.split(',')[1]); r.onerror = rej;
         });
 
-        // Enviar formulario
         document.getElementById('actForm').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSave');
@@ -161,7 +190,6 @@
                 MARI: document.getElementById('mari').value
             };
 
-            // Procesar Imagen y PDF
             const imgFile = document.getElementById('imgInput').files[0];
             const pdfFile = document.getElementById('fileInput').files[0];
             if(imgFile) row.IMAGEN = await toB64(imgFile);
@@ -181,7 +209,7 @@
                     location.reload();
                 } else { throw new Error(); }
             } catch (e) {
-                alert('Error al guardar en AppSheet. Verifique la conexión.');
+                alert('Error al guardar. Verifique los datos.');
                 btn.disabled = false;
                 btn.innerText = 'Guardar Registro';
             }
